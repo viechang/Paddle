@@ -31,3 +31,6 @@ Windows 使用 Ninja 时，`cmake --build` 必须接收 Ninja 的 `-j` 参数；
 `/p:CL_MPCount=...` 是 Visual Studio/MSBuild 参数，传给 Ninja 会被误判为
 构建目标并产生 `unknown target '/p:CL_MPCount=...'`。`setup.py` 现在仅在
 Visual Studio 生成器下传递 MSBuild 参数，其他生成器使用 `-j`。
+
+构建环境将 CMake 的 `CMP0148` 设为 `OLD`，以兼容当前 Paddle 使用的
+`FindPythonInterp`/`FindPythonLibs` 查找逻辑，不改变 Python 3.14 的解释器选择。

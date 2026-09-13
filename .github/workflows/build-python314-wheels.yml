@@ -25,6 +25,7 @@ env:
   GENERATOR: "Ninja"
   CMAKE_BUILD_TYPE: "Release"
   CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+  CMAKE_POLICY_DEFAULT_CMP0148: "OLD"
   MAX_JOBS: "2"
 
 jobs:
@@ -51,6 +52,10 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 1
+
+      - name: Fetch OpenBLAS release tags
+        shell: bash
+        run: git -C third_party/openblas fetch --tags --force origin
 
       - name: Set up Python 3.14
         uses: actions/setup-python@v6
