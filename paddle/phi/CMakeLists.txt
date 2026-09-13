@@ -43,6 +43,7 @@ set(PHI_DEPS
     auto_parallel_proto
     glog
     libuv
+    simple_threadpool
     warpctc
     warprnnt
     eigen3
@@ -235,6 +236,13 @@ else()
       SRCS ${PHI_CORE_SRCS}
       DEPS ${PHI_DEPS})
   endif()
+endif()
+
+if(TARGET phi_core)
+  add_dependencies(phi_core simple_threadpool)
+endif()
+if(TARGET phi)
+  add_dependencies(phi simple_threadpool)
 endif()
 
 if(WIN32 AND DIRENT_INCLUDE_DIR)

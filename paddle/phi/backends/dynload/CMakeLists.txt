@@ -169,7 +169,7 @@ elseif(WITH_GPU)
     nv_library(
       dynload_common static
       SRCS ${DYNLOAD_COMMON_SRCS}
-      DEPS warpctc)
+      DEPS warpctc dirent)
     collect_srcs(backends_srcs SRCS ${CUDA_SRCS})
   else()
     collect_srcs(backends_srcs SRCS ${DYNLOAD_COMMON_SRCS} ${CUDA_SRCS})
@@ -181,10 +181,15 @@ else()
     cc_library(
       dynload_common static
       SRCS ${DYNLOAD_COMMON_SRCS}
-      DEPS warpctc)
+      DEPS warpctc dirent)
   else()
     collect_srcs(backends_srcs SRCS ${DYNLOAD_COMMON_SRCS})
   endif()
+endif()
+
+if(WIN32 AND DIRENT_INCLUDE_DIR)
+  add_dependencies(dynload_common dirent)
+  target_include_directories(dynload_common PRIVATE "${DIRENT_INCLUDE_DIR}")
 endif()
 
 if(WITH_CUDNN_FRONTEND)
