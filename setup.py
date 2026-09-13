@@ -1080,7 +1080,11 @@ def run_cmake_build(build_path):
         max_jobs = max_jobs or str(multiprocessing.cpu_count())
 
         build_args += ["--"]
-        if IS_WINDOWS:
+        # MSBuild understands /p:CL_MPCount, while Ninja and Make interpret
+        # the arguments after `--` as build-tool options. Passing the MSBuild
+        # property to Ninja makes it treat the property as a target name.
+        generator = os.getenv("GENERATOR", "")
+        if IS_WINDOWS and generator.startswith("Visual Studio"):
             build_args += [f"/p:CL_MPCount={max_jobs}"]
         else:
             build_args += ["-j", max_jobs]

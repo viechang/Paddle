@@ -24,3 +24,10 @@ Linux job 在 GitHub 托管的 Ubuntu runner 上生成 `linux_x86_64` wheel。�
 Windows job 使用 Ninja 和 MSVC x64；macOS job 使用 `macos-14` 的 arm64
 runner，wheel 标签为 `macosx_11_0_arm64`。workflow 只构建 CPU 版本，不包含
 CUDA、TensorRT 或分布式组件。
+
+## Windows Ninja 并行参数
+
+Windows 使用 Ninja 时，`cmake --build` 必须接收 Ninja 的 `-j` 参数；
+`/p:CL_MPCount=...` 是 Visual Studio/MSBuild 参数，传给 Ninja 会被误判为
+构建目标并产生 `unknown target '/p:CL_MPCount=...'`。`setup.py` 现在仅在
+Visual Studio 生成器下传递 MSBuild 参数，其他生成器使用 `-j`。
