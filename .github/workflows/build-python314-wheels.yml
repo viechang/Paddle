@@ -20,12 +20,13 @@ env:
   WITH_TESTING: "OFF"
   WITH_TENSORRT: "OFF"
   WITH_ONNXRUNTIME: "OFF"
+  WITH_NCCL: "OFF"
+  WITH_RCCL: "OFF"
   WITH_SHARED_PHI: "ON"
   ON_INFER: "ON"
   GENERATOR: "Ninja"
   CMAKE_BUILD_TYPE: "Release"
   CMAKE_POLICY_VERSION_MINIMUM: "3.5"
-  CMAKE_POLICY_DEFAULT_CMP0148: "OLD"
   MAX_JOBS: "2"
 
 jobs:
@@ -48,17 +49,19 @@ jobs:
 
     steps:
       - name: Check out source and submodules
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           fetch-depth: 1
 
       - name: Fetch OpenBLAS release tags
         shell: bash
-        run: git -C third_party/openblas fetch --tags --force origin
+        run: |
+          git -C third_party/openblas fetch --tags --force origin
+          git -C third_party/protobuf fetch --tags --force origin
 
       - name: Set up Python 3.14
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7.0.0
         with:
           python-version: "3.14"
           cache: pip
@@ -68,9 +71,38 @@ jobs:
 
       - name: Set up MSVC
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path -LiteralPath $vswhere)) {
+            throw "vswhere.exe was not found: $vswhere"
+          }
+          $vsPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vsPath)) {
+            throw "A Visual Studio installation with the x64 C++ toolset was not found"
+          }
+          $devCmd = Join-Path $vsPath "Common7\Tools\VsDevCmd.bat"
+          $dump = & cmd.exe /d /s /c "`"$devCmd`" -arch=x64 -host_arch=x64 && set"
+          if ($LASTEXITCODE -ne 0) {
+            throw "VsDevCmd.bat failed with exit code $LASTEXITCODE"
+          }
+          $environment = @{}
+          foreach ($line in $dump) {
+            if ($line -match "^([^=]+)=(.*)$") {
+              $environment[$matches[1]] = $matches[2]
+            }
+          }
+          foreach ($name in @("PATH", "INCLUDE", "LIB", "LIBPATH", "VCINSTALLDIR", "VCToolsInstallDir", "WindowsSdkDir", "WindowsSDKVersion", "UniversalCRTSdkDir", "UCRTVersion", "VSCMD_ARG_HOST_ARCH", "VSCMD_ARG_TGT_ARCH", "VisualStudioVersion", "VSINSTALLDIR")) {
+            $actualName = $environment.Keys | Where-Object { $_ -ieq $name } | Select-Object -First 1
+            if ($null -ne $actualName) {
+              "$name=$($environment[$actualName])" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            }
+          }
+          $cl = & cmd.exe /d /s /c "`"$devCmd`" -arch=x64 -host_arch=x64 && where cl"
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($cl)) {
+            throw "The x64 MSVC compiler was not found after loading VsDevCmd.bat"
+          }
 
       - name: Install native build tools
         if: runner.os != 'Windows'
@@ -168,7 +200,7 @@ jobs:
           python -X utf8 -c "import paddle; print(paddle.__version__); print(paddle.zeros([2, 3]))"
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: paddle-python314-${{ matrix.platform }}
           path: dist/*.whl

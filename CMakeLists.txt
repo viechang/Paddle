@@ -43,9 +43,14 @@ endif()
 
 project(paddle CXX C)
 
-# enable language CUDA
-# TODO(Shibo Tao): remove find_package(CUDA) completely.
-find_package(CUDA QUIET)
+# Avoid the removed FindCUDA module for explicitly CPU-only builds. GPU builds
+# retain the existing CUDA discovery path until the GPU toolchain is migrated.
+if(DEFINED WITH_GPU AND NOT WITH_GPU)
+  set(CUDA_FOUND FALSE)
+else()
+  # TODO(Shibo Tao): remove find_package(CUDA) completely.
+  find_package(CUDA QUIET)
+endif()
 find_package(MKL CONFIG QUIET)
 option(WITH_ONEMKL "Compile PaddlePaddle with oneMKL" OFF)
 option(WITH_GPU "Compile PaddlePaddle with NVIDIA GPU" ${CUDA_FOUND})

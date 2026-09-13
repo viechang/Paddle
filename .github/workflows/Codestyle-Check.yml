@@ -30,7 +30,7 @@ jobs:
         run: |
           rm -rf * .[^.]*
       - name: Checkout base repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 1000
@@ -41,7 +41,7 @@ jobs:
           git checkout -b test FETCH_HEAD
 
       - name: Setup python3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7.0.0
         with:
           python-version: "3.12"
           cache: "pip"

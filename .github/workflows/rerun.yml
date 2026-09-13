@@ -22,7 +22,7 @@ jobs:
         run: |
           rm -rf * .[^.]*
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
 
       - name: Rerun all failed jobs
         if: ${{ contains(github.event.comment.body, 'all-failed') }}
@@ -373,7 +373,7 @@ jobs:
         run: |
           rm -rf * .[^.]*
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
 

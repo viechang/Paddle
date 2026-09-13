@@ -51,20 +51,39 @@ endif()
 file(GLOB CBLAS_SOURCE_FILE_LIST ${CBLAS_SOURCE_DIR})
 list(LENGTH CBLAS_SOURCE_FILE_LIST RES_LEN)
 if(RES_LEN EQUAL 0)
-  execute_process(COMMAND ${GIT_EXECUTABLE} clone -b ${CBLAS_TAG}
-                          "${GIT_URL}/xianyi/OpenBLAS.git" ${CBLAS_SOURCE_DIR})
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} clone -b "${CBLAS_TAG}"
+            "${GIT_URL}/xianyi/OpenBLAS.git" "${CBLAS_SOURCE_DIR}"
+    RESULT_VARIABLE CBLAS_CLONE_RESULT)
+  if(NOT CBLAS_CLONE_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to clone OpenBLAS ${CBLAS_TAG}")
+  endif()
 else()
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} fetch --tags --force origin
+    WORKING_DIRECTORY "${CBLAS_SOURCE_DIR}"
+    RESULT_VARIABLE CBLAS_FETCH_RESULT
+    OUTPUT_QUIET
+    ERROR_QUIET)
+  if(NOT CBLAS_FETCH_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to fetch OpenBLAS tags")
+  endif()
   # check git tag
   execute_process(
     COMMAND ${GIT_EXECUTABLE} describe --abbrev=6 --always --tags
     OUTPUT_VARIABLE VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
-    WORKING_DIRECTORY ${CBLAS_SOURCE_DIR})
-  if(NOT ${VERSION} STREQUAL ${CBLAS_TAG})
+    WORKING_DIRECTORY "${CBLAS_SOURCE_DIR}")
+  if(NOT "${VERSION}" STREQUAL "${CBLAS_TAG}")
     message(
       WARNING "openblas version is not ${VERSION}, checkout to ${CBLAS_TAG}")
-    execute_process(COMMAND ${GIT_EXECUTABLE} checkout ${CBLAS_TAG}
-                    WORKING_DIRECTORY ${CBLAS_SOURCE_DIR})
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} checkout "${CBLAS_TAG}"
+      WORKING_DIRECTORY "${CBLAS_SOURCE_DIR}"
+      RESULT_VARIABLE CBLAS_CHECKOUT_RESULT)
+    if(NOT CBLAS_CHECKOUT_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to checkout OpenBLAS ${CBLAS_TAG}")
+    endif()
   endif()
 endif()
 

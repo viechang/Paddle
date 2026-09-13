@@ -16,17 +16,33 @@ include(python_module)
 
 check_py_version(${PY_VERSION})
 
-# Find Python with minimum PY_VERSION specified or will raise error!
-find_package(PythonInterp ${PY_VERSION} REQUIRED)
-find_package(PythonLibs ${PY_VERSION} REQUIRED)
+# Find Python with the modern CMake module. The legacy PythonInterp and
+# PythonLibs modules trigger CMP0148 warnings and are removed by newer CMake.
+if(PYTHON_EXECUTABLE)
+  set(Python3_EXECUTABLE "${PYTHON_EXECUTABLE}" CACHE FILEPATH
+      "Python 3 interpreter selected by Paddle" FORCE)
+endif()
+
+if(WIN32)
+  find_package(Python3 ${PY_VERSION} REQUIRED COMPONENTS Interpreter)
+else()
+  find_package(Python3 ${PY_VERSION} REQUIRED COMPONENTS Interpreter Development)
+endif()
+
+set(PYTHON_EXECUTABLE "${Python3_EXECUTABLE}" CACHE FILEPATH
+    "Python interpreter" FORCE)
+set(PYTHON_VERSION_STRING "${Python3_VERSION}" CACHE STRING
+    "Python version" FORCE)
+set(PYTHONINTERP_FOUND "${Python3_Interpreter_FOUND}")
 
 if(WIN32)
   execute_process(
     COMMAND
       "${PYTHON_EXECUTABLE}" "-c"
-      "from distutils import sysconfig as s;import sys;import struct;
-print(sys.prefix);
-print(s.get_config_var('LDVERSION') or s.get_config_var('VERSION'));
+      "import sys;import sysconfig;
+print(sys.base_prefix);
+print(sysconfig.get_config_var('LDVERSION') or sysconfig.get_config_var('VERSION'));
+print(sysconfig.get_path('include'));
 "
     RESULT_VARIABLE _PYTHON_SUCCESS
     OUTPUT_VARIABLE _PYTHON_VALUES
@@ -42,9 +58,16 @@ print(s.get_config_var('LDVERSION') or s.get_config_var('VERSION'));
   string(REGEX REPLACE "\n" ";" _PYTHON_VALUES ${_PYTHON_VALUES})
   list(GET _PYTHON_VALUES 0 PYTHON_PREFIX)
   list(GET _PYTHON_VALUES 1 PYTHON_LIBRARY_SUFFIX)
+  list(GET _PYTHON_VALUES 2 PYTHON_INCLUDE_DIR_FROM_SYS)
 
   # Make sure all directory separators are '/'
   string(REGEX REPLACE "\\\\" "/" PYTHON_PREFIX ${PYTHON_PREFIX})
+  string(REGEX REPLACE "\\\\" "/" PYTHON_INCLUDE_DIR_FROM_SYS
+                       ${PYTHON_INCLUDE_DIR_FROM_SYS})
+
+  if(NOT Python3_INCLUDE_DIRS)
+    set(Python3_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR_FROM_SYS}")
+  endif()
 
   set(PYTHON_LIBRARY "${PYTHON_PREFIX}/libs/Python${PYTHON_LIBRARY_SUFFIX}.lib")
 
@@ -61,7 +84,15 @@ print(s.get_config_var('LDVERSION') or s.get_config_var('VERSION'));
     message(FATAL_ERROR "Python libraries not found")
   endif()
   set(PYTHON_LIBRARIES "${PYTHON_LIBRARY}")
+  set(PYTHONLIBS_FOUND TRUE)
+else()
+  set(PYTHON_LIBRARIES "${Python3_LIBRARIES}" CACHE FILEPATH
+      "Python libraries" FORCE)
+  set(PYTHONLIBS_FOUND "${Python3_Development_FOUND}")
 endif(WIN32)
+
+set(PYTHON_INCLUDE_DIR "${Python3_INCLUDE_DIRS}" CACHE PATH
+    "Python include directory" FORCE)
 
 # Fixme: Maybe find a static library. Get SHARED/STATIC by FIND_PACKAGE.
 add_library(python SHARED IMPORTED GLOBAL)

@@ -14,7 +14,7 @@ jobs:
         run: |
           rm -rf * .[^.]*
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
 
       - name: Check DEVELOP_VERSION and RELEASE_VERSION equality
         id: check_versions
@@ -45,7 +45,7 @@ jobs:
 
       - name: Create Issue if versions not equal
         if: steps.check_versions.outputs.equal == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9.0.0
         env:
           DEVELOP_VERSION: ${{ steps.check_versions.outputs.develop_version }}
           RELEASE_VERSION: ${{ steps.check_versions.outputs.release_version }}

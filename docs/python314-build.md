@@ -32,5 +32,20 @@ Windows 使用 Ninja 时，`cmake --build` 必须接收 Ninja 的 `-j` 参数；
 构建目标并产生 `unknown target '/p:CL_MPCount=...'`。`setup.py` 现在仅在
 Visual Studio 生成器下传递 MSBuild 参数，其他生成器使用 `-j`。
 
-构建环境将 CMake 的 `CMP0148` 设为 `OLD`，以兼容当前 Paddle 使用的
-`FindPythonInterp`/`FindPythonLibs` 查找逻辑，不改变 Python 3.14 的解释器选择。
+Python 查找已迁移到现代 CMake `FindPython3` 模块，避免依赖已弃用的
+`FindPythonInterp`/`FindPythonLibs` 及其 `CMP0148` 兼容策略。
+
+workflow 会在构建前为 OpenBLAS 和 Protobuf 拉取 release tags。Paddle 的
+外部项目步骤分别需要 `v0.3.28` 和 `v21.12`；仅 checkout 子模块提交而不
+获取 tags 时，外部项目会因 `git checkout` 找不到 tag 而失败。
+
+此外，CMake 外部项目逻辑本身也会在已有子模块源目录中同步 tags，再执行
+版本 checkout；因此从源码或其他 CI 入口构建时不会重新出现该浅克隆问题。
+
+Windows workflow 不使用声明 Node 20 的第三方 MSVC action，而是通过 runner
+自带的 `vswhere` 和 `VsDevCmd.bat` 加载 x64 MSVC 环境，避免 GitHub Actions
+的 Node 20 弃用警告。workflow 使用当前版本的 `actions/checkout`、
+`actions/setup-python` 和 `actions/upload-artifact`。
+
+MSVC 环境变量按大小写不敏感方式写入后续 Actions step，兼容 `Path` 与
+`PATH` 等 Windows 环境变量命名差异。

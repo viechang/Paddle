@@ -255,7 +255,8 @@ function(build_protobuf TARGET_NAME)
     SOURCE_DIR ${SOURCE_DIR}
     UPDATE_COMMAND ""
     PATCH_COMMAND
-    COMMAND cd ${SOURCE_DIR} && git checkout ${PROTOBUF_TAG}
+    COMMAND ${GIT_EXECUTABLE} -C "${SOURCE_DIR}" fetch --tags --force origin
+    COMMAND ${GIT_EXECUTABLE} -C "${SOURCE_DIR}" checkout "${PROTOBUF_TAG}"
     DEPENDS zlib
     CONFIGURE_COMMAND
       ${CMAKE_COMMAND} ${SOURCE_DIR}/cmake ${OPTIONAL_ARGS} -G${CMAKE_GENERATOR}
