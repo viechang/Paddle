@@ -105,14 +105,13 @@ class TEST_API DDim {
   int64_t at(int idx) const;
 
   template <typename Visitor>
-  auto apply_visitor(Visitor&& visitor)
-      -> decltype(visitor(std::declval<Dim<0>&>())) {
+  std::invoke_result_t<Visitor, Dim<0>&> apply_visitor(Visitor&& visitor) {
     PADDLE_VISIT_DDIM(rank_, visitor(UnsafeCast<kRank>()));
   }
 
   template <typename Visitor>
-  auto apply_visitor(Visitor&& visitor) const
-      -> decltype(visitor(std::declval<const Dim<0>&>())) {
+  std::invoke_result_t<Visitor, const Dim<0>&> apply_visitor(
+      Visitor&& visitor) const {
     PADDLE_VISIT_DDIM(rank_, visitor(UnsafeCast<kRank>()));
   }
 

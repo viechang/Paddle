@@ -148,6 +148,25 @@ set(PYBIND_SRCS
     mem_py_stack.cc
     size.cc)
 
+if(PY_VERSION VERSION_GREATER_EQUAL 3.14 AND MSVC)
+  list(
+    REMOVE_ITEM
+    PYBIND_SRCS
+    sot/guards.cc
+    sot/cpython_internals/internals_3_14.c)
+endif()
+
+if(PY_VERSION VERSION_GREATER_EQUAL 3.14)
+  if(MSVC)
+    set(_SOT_CXX20_FLAG "/std:c++20")
+  else()
+    set(_SOT_CXX20_FLAG "-std=c++20")
+  endif()
+  set_source_files_properties(
+    sot/eval_frame_tools.cc sot/guards.cc PROPERTIES COMPILE_FLAGS
+                                                    "${_SOT_CXX20_FLAG}")
+endif()
+
 if(WITH_DISTRIBUTE)
   set(PYBIND_SRCS ${PYBIND_SRCS} dist_api.cc)
 

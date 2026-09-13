@@ -33,7 +33,11 @@ extern "C" {
 #define PY_3_15_PLUS (PY_VERSION_HEX >= PY_3_15_0_HEX)
 
 #define SOT_NOT_SUPPORTED_VERSION PY_3_15_0_HEX
+#if PY_3_14_PLUS && defined(_WIN32)
+#define SOT_IS_SUPPORTED 0
+#else
 #define SOT_IS_SUPPORTED (PY_VERSION_HEX < SOT_NOT_SUPPORTED_VERSION)
+#endif
 
 #if PY_3_14_PLUS && !defined(_WIN32)
 #define PyFrame_GET_CODE(frame) \
