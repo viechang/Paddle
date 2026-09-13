@@ -328,6 +328,12 @@ cc_library(
   SRCS ${op_dialect_srcs}
   DEPS ${op_dialect_deps})
 
+# amp_utils.h includes eager_codegen output. Make the generated declarations
+# available before Ninja starts compiling manual_api.cc in parallel.
+if(TARGET eager_codegen)
+  add_dependencies(op_dialect eager_codegen)
+endif()
+
 #Note(risemeup1):compile some *.cc files which depend on primitive_vjp_experimental into op_dialect_vjp.a/lib
 set(op_decomp_source_file ${PIR_DIALECT_BINARY_DIR}/op_decomp_rule.cc)
 set(op_decomp_vjp_source_file ${PIR_DIALECT_BINARY_DIR}/op_decomp_vjp.cc)
