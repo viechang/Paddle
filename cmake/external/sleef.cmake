@@ -27,7 +27,10 @@ set(SLEEF_PREFIX_DIR ${THIRD_PARTY_PATH}/sleef)
 set(SLEEF_INSTALL_DIR ${THIRD_PARTY_PATH}/install/sleef)
 
 # Pin sleef to the required tag inside the third_party submodule before build.
-set(SLEEF_PATCH_COMMAND git checkout -- . && git checkout ${SLEEF_TAG})
+# The CI checkout is shallow, so fetch tags before selecting the pinned version.
+set(SLEEF_PATCH_COMMAND
+    git fetch --tags --force origin && git checkout -- . && git checkout
+    ${SLEEF_TAG})
 
 set(SLEEF_INCLUDE_DIR
     "${SLEEF_INSTALL_DIR}/include"
