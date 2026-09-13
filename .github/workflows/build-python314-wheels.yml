@@ -59,6 +59,7 @@ jobs:
         run: |
           git -C third_party/openblas fetch --tags --force origin
           git -C third_party/protobuf fetch --tags --force origin
+          git -C third_party/pocketfft fetch --tags --force origin
 
       - name: Set up Python 3.14
         uses: actions/setup-python@v7.0.0

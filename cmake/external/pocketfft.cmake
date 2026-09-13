@@ -32,7 +32,8 @@ if(APPLE)
        ${PADDLE_SOURCE_DIR}/patches/pocketfft/pocketfft_hdronly.h.patch
        native_dst)
   set(POCKETFFT_PATCH_COMMAND
-      git checkout -- . && git checkout ${POCKETFFT_TAG} && patch -Nd
+      git fetch --tags --force origin && git checkout -- . && git checkout
+      ${POCKETFFT_TAG} && patch -Nd
       ${SOURCE_DIR} < ${native_dst})
 endif()
 

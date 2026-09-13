@@ -237,6 +237,10 @@ else()
   endif()
 endif()
 
+if(WIN32 AND DIRENT_INCLUDE_DIR)
+  target_include_directories(phi PRIVATE "${DIRENT_INCLUDE_DIR}")
+endif()
+
 include(${PROJECT_SOURCE_DIR}/cmake/architecture.cmake)
 paddle_detect_cuda_target_dir(CUDA_TARGET_DIR)
 set(NVTX3_PATH

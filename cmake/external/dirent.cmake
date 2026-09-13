@@ -35,7 +35,9 @@ endif()
 message(STATUS "DIRENT_NAME: ${DIRENT_NAME}, DIRENT_URL: ${DIRENT_URL}")
 set(DIRENT_DOWNLOAD_DIR "${PADDLE_SOURCE_DIR}/third_party/dirent")
 set(DIRENT_PREFIX_DIR ${THIRD_PARTY_PATH}/dirent)
-set(DIRENT_INCLUDE_DIR ${THIRD_PARTY_PATH}/dirent/src/extern_dirent/include)
+set(DIRENT_SOURCE_DIR ${DIRENT_PREFIX_DIR}/src/extern_dirent)
+# ExternalProject strips the archive's top-level directory while extracting.
+set(DIRENT_INCLUDE_DIR ${DIRENT_SOURCE_DIR}/include)
 set(DIRENT_URL_MD5 "6bf6319ae71432ed6a4d90dc61e80131")
 
 include_directories(${DIRENT_INCLUDE_DIR})
@@ -77,6 +79,7 @@ ExternalProject_Add(
   URL ${DIRENT_DOWNLOAD_DIR}/${DIRENT_CACHE_FILENAME}
   PREFIX ${DIRENT_PREFIX_DIR}
   DOWNLOAD_DIR ${DIRENT_DOWNLOAD_DIR}
+  URL_HASH MD5=${DIRENT_URL_MD5}
   DOWNLOAD_NO_PROGRESS 1
   UPDATE_COMMAND ""
   CONFIGURE_COMMAND ""
